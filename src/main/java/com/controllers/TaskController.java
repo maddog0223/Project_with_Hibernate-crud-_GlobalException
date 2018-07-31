@@ -4,7 +4,9 @@ package com.controllers;
 import com.exceptions.CustomDatabaseException;
 import com.model.CustomResponseObject;
 import com.model.Task;
+import com.model.User;
 import com.services.TaskService;
+import com.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,9 +20,12 @@ public class TaskController {
     @Autowired
     TaskService taskService;
 
+    @Autowired
+    UserService userService;
+
     //get task
     @GetMapping
-    public CustomResponseObject getTask() throws Exception{
+    public CustomResponseObject getTask() throws Exception {
 
         List<Task> tasks = taskService.findAllTasks();
         CustomResponseObject obj = new CustomResponseObject();
@@ -31,11 +36,25 @@ public class TaskController {
 
     }
 
+    //Get by id
+    @GetMapping("/{id}")
+    public CustomResponseObject<Task> findUserById(@PathVariable("id") long id) throws CustomDatabaseException {
+
+        Task gettask = taskService.findTaskById(id);
+
+        CustomResponseObject obj = new CustomResponseObject();
+        obj.setData(gettask);
+        obj.setStatusCode(200);
+
+        return obj;
+    }
+
+
     //create task
     @PostMapping
-    public CustomResponseObject createTask(@Valid @RequestBody Task task) throws Exception{
+    public CustomResponseObject createTask(@Valid @RequestBody Task task) throws Exception {
 
-       Task t = taskService.createTask(task);
+        Task t = taskService.createTask(task);
 
         CustomResponseObject obj = new CustomResponseObject();
 
@@ -44,7 +63,6 @@ public class TaskController {
 
         return obj;
     }
-
 
 
     //put task
@@ -64,27 +82,50 @@ public class TaskController {
     @DeleteMapping("/{id}")
     public CustomResponseObject<String> deleteTask(@PathVariable("id") long id) throws CustomDatabaseException {
 
-       boolean task = taskService.deleteTasksById(id);
+        boolean task = taskService.deleteTasksById(id);
         CustomResponseObject obj = new CustomResponseObject();
-       if (task){
+        if (task) {
 
-           obj.setData(  "id task " + id + " has be deleted");
-           obj.setStatusCode(200);
+            obj.setData("id task " + id + " has be deleted");
+            obj.setStatusCode(200);
 
-           return obj;
-       }
+            return obj;
+        }
 
-        throw new  CustomDatabaseException("Unable to delete task");
+        throw new CustomDatabaseException("Unable to delete task");
+
+    }
+
+
+    // Get id with the user class
+
+    @GetMapping("/user/{id}")
+    public CustomResponseObject<Task> getByUsersId
+            (@PathVariable("id") long id) throws CustomDatabaseException {
+
+        Task task = new Task();
+        User user = new User();
+
+        long taskid = task.getId();
+        long userid = user.getId();
+
+        id = userid;
+        CustomResponseObject obj = new CustomResponseObject();
+
+        if (id == taskid){
+
+           taskService.findTaskById(id);
+
+            obj.setData(task);
+            obj.setStatusCode(200);
+
+            return obj;
+
+
+        }
+
+        throw new CustomDatabaseException("Unable to identify user/task id");
 
     }
 
-
-    // With the user CRUD with the user class
-
-    @GetMapping("/{firstname}")
-    public CustomResponseObject<Task> getByUsersName
-            (@PathVariable("firstname") String firstname) throws CustomDatabaseException{
-
-
-    }
 }
